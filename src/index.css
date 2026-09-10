@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-ink text-paper font-sans;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(200, 245, 66, 0.055) 1px, transparent 0);
+  background-size: 26px 26px;
+  background-position: -13px -13px;
+  letter-spacing: 0.01em;
+}
+
+/* 噪点纹理覆层 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: rgba(200, 245, 66, 0.85);
+  color: #0b0e0c;
+}
+
+/* 细滚动条 */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0e0c;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a3326;
+  border: 2px solid #0b0e0c;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a4633;
+}
+
+/* 图表 tooltip — 100% 不透明背景，清晰可读 */
+.heatmap-tip,
+.trend-tip {
+  pointer-events: none;
+  position: absolute;
+  z-index: 100;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 5px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1;
+  border-radius: 4px;
+  border: 1px solid rgba(120, 140, 110, 0.5);
+  /* 100% 不透明深色，防止半透明导致的文字发灰 */
+  background-color: #0b0e0c;
+  color: #f3f7ef;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 80ms linear;
+}
+
+/* Heatmap & TrendChart: tooltip 在格子/柱子上方，用 top 负值定位 */
+.heatmap-tip,
+.trend-tip {
+  top: -28px;
+}
+
+.group:hover > .heatmap-tip,
+.group:hover > .trend-tip {
+  opacity: 1;
+}
+
+/* hover 时把当前格子/柱子提到最顶层，防止被后面周列的格子盖住 tooltip */
+.group:hover {
+  z-index: 200;
+}
+
+@layer components {
+  /* 发丝描边卡片 + 制图角标 */
+  .panel {
+    @apply relative border border-line bg-ink-800/80;
+  }
+  .panel::before,
+  .panel::after,
+  .panel > .corner-tl,
+  .panel > .corner-br {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+  }
+  .panel::before {
+    top: -1px;
+    left: -1px;
+    border-top: 2px solid rgba(200, 245, 66, 0.55);
+    border-left: 2px solid rgba(200, 245, 66, 0.55);
+  }
+  .panel::after {
+    top: -1px;
+    right: -1px;
+    border-top: 2px solid rgba(200, 245, 66, 0.55);
+    border-right: 2px solid rgba(200, 245, 66, 0.55);
+  }
+  .panel > .corner-tl {
+    bottom: -1px;
+    left: -1px;
+    border-bottom: 2px solid rgba(200, 245, 66, 0.55);
+    border-left: 2px solid rgba(200, 245, 66, 0.55);
+  }
+  .panel > .corner-br {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 2px solid rgba(200, 245, 66, 0.55);
+    border-right: 2px solid rgba(200, 245, 66, 0.55);
+  }
+
+  .kicker {
+    @apply font-mono text-[11px] tracking-[0.28em] text-phosphor-dim;
+  }
+
+  .field-label {
+    @apply mb-2 block font-mono text-[11px] tracking-[0.22em] text-dim;
+  }
+
+  .field-input {
+    @apply w-full border border-line bg-ink px-3.5 py-2.5 font-mono text-sm text-paper
+      outline-none transition-colors duration-150
+      placeholder:text-faint hover:border-ink-500
+      focus:border-phosphor focus:bg-ink-700;
+  }
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 border px-4 py-2.5
+      font-mono text-[13px] tracking-wider transition-all duration-150
+      disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply btn border-phosphor bg-phosphor text-ink hover:brightness-110
+      active:translate-y-px;
+  }
+  .btn-ghost {
+    @apply btn border-line bg-transparent text-paper hover:border-phosphor-dim
+      hover:text-phosphor active:translate-y-px;
+  }
+  .btn-danger {
+    @apply btn border-danger/70 bg-danger/10 text-danger hover:bg-danger/20
+      hover:border-danger active:translate-y-px;
+  }
+
+  .th-cell {
+    @apply px-3 py-2.5 text-left font-mono text-[11px] font-normal tracking-[0.18em] text-faint;
+  }
+  .td-cell {
+    @apply px-3 py-2.5 text-sm text-paper/90;
+  }
+}
